@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>오늘 뭐 먹지? | 기분 & 성격 맞춤 메뉴 추천</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
+    body {
+      background-color: #f4f6f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .card {
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+      width: 100%;
+      max-width: 480px;
+    }
+    h1 { font-size: 1.5rem; color: #333; margin-top: 0; text-align: center; }
+    label { display: block; margin-top: 15px; font-weight: 600; color: #555; }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 20px;
+      background-color: #ff6b6b;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover { background-color: #ff5252; }
+    button:disabled { background-color: #ccc; cursor: not-allowed; }
+    .result-box {
+      margin-top: 25px;
+      padding: 15px;
+      background-color: #fff9f5;
+      border: 1px solid #ffe3d1;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      line-height: 1.6;
+      color: #444;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>🍕 오늘의 기분 맞춤 메뉴</h1>
+    
+    <label for="mood">현재 기분 (필수)</label>
+    <input type="text" id="mood" placeholder="예: 우울함, 신남, 피곤함, 스트레스 받음">
+
+    <label for="personality">성격 또는 취향 (선택)</label>
+    <input type="text" id="personality" placeholder="예: 매운 거 잘 못 먹음, 대담함, 차분함">
+
+    <button id="submitBtn" onclick="getRecommendation()">메뉴 추천받기 🎲</button>
+
+    <div id="result" class="result-box"></div>
+  </div>
+
+  <script>
+    async function getRecommendation() {
+      const mood = document.getElementById('mood').value.trim();
+      const personality = document.getElementById('personality').value.trim();
+      const resultBox = document.getElementById('result');
+      const submitBtn = document.getElementById('submitBtn');
+
+      if (!mood) {
+        alert('현재 기분을 입력해주세요!');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'AI가 메뉴 고민 중... 💭';
+      resultBox.style.display = 'block';
+      resultBox.innerText = '메뉴를 추천하고 있습니다. 잠시만 기다려주세요!';
+
+      try {
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mood, personality }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          resultBox.innerText = data.result;
+        } else {
+          resultBox.innerText = '오류: ' + (data.error || '추천을 불러오지 못했습니다.');
+        }
+      } catch (err) {
+        resultBox.innerText = '네트워크 오류가 발생했습니다. 다시 시도해주세요.';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = '메뉴 추천받기 🎲';
+      }
+    }
+  </script>
+
+</body>
+</html>
